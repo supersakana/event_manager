@@ -70,6 +70,7 @@ contents = CSV.open(
   header_converters: :symbol
 )
 hours = {}
+weeks = {}
 
 template_letter = File.read('../form_letter.erb')
 erb_template = ERB.new template_letter
@@ -85,14 +86,18 @@ contents.each do |row|
   hours[date.hour] = 0 if hours[date.hour].nil?
   hours[date.hour] += 1
 
-  p "#{date.hour}:#{date.minute} - #{date.wday} - #{phone} - #{name}"
+  week_days = %w[Sunday Monday Tuesday Wednsday Thursday Friday Saturday]
+  weeks[week_days[date.wday]] = 0 if weeks[week_days[date.wday]].nil?
+  weeks[week_days[date.wday]] += 1
+
+  p "#{date.month}/#{date.day}/#{date.year} - #{week_days[date.wday]} - #{phone} - #{name}"
   # form_letter = erb_template.result(binding)
   # save_thank_you_letter(id, form_letter)
 end
 
-def max_hour(hash)
+def max_value(hash)
   hash.max_by { |_k, v| v }
 end
 
-# returns hour with most registered participants
-# p max_hour(hours)
+# p max_value(weeks)
+# p max_value(hours)
