@@ -91,13 +91,13 @@ contents.each do |row|
   weeks[week_days[date.wday]] += 1
 
   p "#{date.month}/#{date.day}/#{date.year} - #{week_days[date.wday]} - #{phone} - #{name}"
-  # form_letter = erb_template.result(binding)
-  # save_thank_you_letter(id, form_letter)
+  form_letter = erb_template.result(binding)
+  save_thank_you_letter(id, form_letter)
 end
 
 def max_value(hash)
   hash.max_by { |_k, v| v }
 end
 
-# p max_value(weeks)
-# p max_value(hours)
+p max_value(weeks)
+p max_value(hours)
