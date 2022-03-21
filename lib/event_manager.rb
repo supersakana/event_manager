@@ -20,7 +20,7 @@ def validate_number(phone)
   if phone.length == 10
     format(phone).join
   elsif phone.length == 11 && phone[0] == 1
-    phone.slice(0)
+    format(phone.slice(0)).join
   else
     'Invalid number'
   end
@@ -31,6 +31,10 @@ def format(phone)
   phone.insert(4, ')')
   phone.insert(5, '-')
   phone.insert(9, '-')
+end
+
+def time_maker(time)
+  DateTime.strptime(time, '%m/%d/%y %H:%M')
 end
 
 def legislators_by_zipcode(zip)
@@ -65,6 +69,7 @@ contents = CSV.open(
   headers: true,
   header_converters: :symbol
 )
+hours = {}
 
 template_letter = File.read('../form_letter.erb')
 erb_template = ERB.new template_letter
@@ -73,11 +78,21 @@ contents.each do |row|
   id = row[0]
   name = row[:first_name]
   phone = clean_phone(row[:homephone])
+  date = time_maker(row[:regdate])
   zipcode = clean_zipcode(row[:zipcode])
   legislators = legislators_by_zipcode(zipcode)
 
-  puts "#{name}: #{phone}"
+  hours[date.hour] = 0 if hours[date.hour].nil?
+  hours[date.hour] += 1
 
+  p "#{date.hour}:#{date.minute} - #{date.wday} - #{phone} - #{name}"
   # form_letter = erb_template.result(binding)
   # save_thank_you_letter(id, form_letter)
 end
+
+def max_hour(hash)
+  hash.max_by { |_k, v| v }
+end
+
+# returns hour with most registered participants
+# p max_hour(hours)
