@@ -1,11 +1,36 @@
 # frozen_string_literal: true
 
+# ruby event_manager.rb
 require 'csv'
 require 'google/apis/civicinfo_v2'
 require 'erb'
 
 def clean_zipcode(zipcode)
   zipcode.to_s.rjust(5, '0')[0..4]
+end
+
+def clean_phone(phone)
+  number_list = ('0'..'9').to_a
+  cleaned_number = []
+  phone.split('').each { |char| cleaned_number.push(char) if number_list.include?(char) }
+  validate_number(cleaned_number)
+end
+
+def validate_number(phone)
+  if phone.length == 10
+    format(phone).join
+  elsif phone.length == 11 && phone[0] == 1
+    phone.slice(0)
+  else
+    'Invalid number'
+  end
+end
+
+def format(phone)
+  phone.insert(0, '(')
+  phone.insert(4, ')')
+  phone.insert(5, '-')
+  phone.insert(9, '-')
 end
 
 def legislators_by_zipcode(zip)
@@ -23,6 +48,16 @@ def legislators_by_zipcode(zip)
   end
 end
 
+def save_thank_you_letter(id, form_letter)
+  Dir.mkdir('output') unless Dir.exist?('output')
+
+  filename = "output/thanks_#{id}.html"
+
+  File.open(filename, 'w') do |file|
+    file.puts form_letter
+  end
+end
+
 puts 'EventManager initialized.'
 
 contents = CSV.open(
@@ -37,18 +72,12 @@ erb_template = ERB.new template_letter
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
-
+  phone = clean_phone(row[:homephone])
   zipcode = clean_zipcode(row[:zipcode])
-
   legislators = legislators_by_zipcode(zipcode)
 
-  form_letter = erb_template.result(binding)
+  puts "#{name}: #{phone}"
 
-  Dir.mkdir('output') unless Dir.exist?('output')
-
-  filename = "output/thanks_#{id}.html"
-
-  File.open(filename, 'w') do |file|
-    file.puts form_letter
-  end
+  # form_letter = erb_template.result(binding)
+  # save_thank_you_letter(id, form_letter)
 end
